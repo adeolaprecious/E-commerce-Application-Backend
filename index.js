@@ -1,43 +1,42 @@
 const express = require("express");
-const app = express()
-const port = 4950;
+const app = express();
 const ejs = require("ejs");
-app.set('view engine', 'ejs');
+const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
-const customerRouter = require ('./routes/user.route')
+dotenv.config();
 
-
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const URI = process.env.URI
 
+// EJS setup
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views"); // 👈 Make sure you have a "views" folder in backend/
 
-let URI = "mongodb+srv://adeolaprecious:pearl10@cluster0.abcw6bw.mongodb.net/project?retryWrites=true&w=majority&appName=Cluster0"
+// MongoDB connection
+const URI = process.env.URI;
+const port = process.env.PORT || 4950;
 
-mongoose.connect(URI)
-.then(()=>{
-    console.log("Mongoose connected successfully");
-})
-.catch((error)=>{
-    console.error("Mongoose connection error:", error);
-})
+mongoose
+  .connect(URI)
+  .then(() => {
+    console.log("✅ Mongoose connected successfully");
+  })
+  .catch((error) => {
+    console.error("❌ Mongoose connection error:", error);
+  });
 
-app.get("/signup", (req,res)=>{
-    res.render("signup")
-})
-
-
-
-let allCustomers = []
-
+// Routes
+const customerRouter = require("./routes/user.route");
 app.use("/user", customerRouter);
 
-const port = process.env.PORT || 4950 ;
+// Default route
+app.get("/", (req, res) => {
+  res.send("🚀 Server is up and running. Go to /user/signup or /user/signin");
+});
 
-app.listen(port, ()=>{
-    console.log(`Server has started on port ${port}`);
-    
-})
-
-
+// Start server
+app.listen(port, () => {
+  console.log(`Server has started on http://localhost:${port}`);
+});
