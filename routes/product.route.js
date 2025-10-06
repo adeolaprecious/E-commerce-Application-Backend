@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Product = require("../models/product.model");
+const productController = require("../controllers/product.controller"); 
 
 // Get all products
 router.get("/", async (req, res) => {
@@ -28,4 +28,3 @@ router.get("/:id", async (req, res) => {
 
 
 module.exports = router;
-
