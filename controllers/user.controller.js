@@ -12,20 +12,20 @@ exports.getSignup = (req, res) => {
 exports.postRegister = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
-    const existingCustomer = await User.findOne({ email });
+    const existingCustomer = await userModel.findOne({ email });
     if (existingCustomer) {
       return res.status(400).send("User already exists. Please login.");
     }
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    const newCustomer = new User({ firstName, lastName, email, password: hashedPassword, });
+    const newCustomer = new userModel({ firstName, lastName, email, password: hashedPassword, });
     await newCustomer.save();
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'adeolaprecious006@gmail.com',
-        pass: 'vbqiabvxiekxphud'
+        user: process.env.EMAIL.USER,
+        pass: process.env.EMAIL_PASS
       },
       tls: {
         rejectUnauthorized: false,
@@ -97,60 +97,60 @@ exports.getSignin = (req, res) => {
 // };
 
 exports.postLogin = (req, res) => {
-    const { email, password } = req.body;
-    // res.send('confirmed again')
-    console.log("Login form submitted data", req.body);
+  const { email, password } = req.body;
+  // res.send('confirmed again')
+  console.log("Login form submitted data", req.body);
 
-    userModel.findOne({ email })
-        .then((foundCustomer) => {
-            if (!foundCustomer) {
-                console.log("Invalid email");
-                return res.status(400).json({ message: "Invalid email or password" })
-            }
+  userModel.findOne({ email })
+    .then((foundCustomer) => {
+      if (!foundCustomer) {
+        console.log("Invalid email");
+        return res.status(400).json({ message: "Invalid email or password" })
+      }
 
-            const isMatch = bcrypt.compareSync(password, foundCustomer.password);
-            if (!isMatch) {
-                console.log("Invalid password");
-                return res.status(400).json({ message: "Invalid email or password" });
-            }
-                console.log("Login successfull for:", foundCustomer.email);
-                // const token = jwt.sign({ email: req.body.email}, "secretkey", {expiresIn: "1h"});
-                const token = jwt.sign({ email: req.body.email }, "secretkey", { expiresIn: "7d" });
-                console.log("Generated JWT:", token);
-                
-                return res.json({
-                    message: "Login successful",
-                    user: {
-                        id: foundCustomer._id,
-                        fullName: foundCustomer.fullName,
-                        email: foundCustomer.email,
-                        token: token
-                    }
-                })
+      const isMatch = bcrypt.compareSync(password, foundCustomer.password);
+      if (!isMatch) {
+        console.log("Invalid password");
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+      console.log("Login successfull for:", foundCustomer.email);
+      // const token = jwt.sign({ email: req.body.email }, "secretkey", { expiresIn: "7d" });
+      const token = jwt.sign({ email: req.body.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      console.log("Generated JWT:", token);
 
-        })
-        .catch((err) => {
-            console.error();
-            ("Error logging in:", err);
-            res.status(500).json({ message: "Internal server error" })
-        });
+      return res.json({
+        message: "Login successful",
+        user: {
+          id: foundCustomer._id,
+          fullName: foundCustomer.fullName,
+          email: foundCustomer.email,
+          token: token
+        }
+      })
+
+    })
+    .catch((err) => {
+      console.error("Error logging in:", err);
+      res.status(500).json({ message: "Internal server error" })
+    });
 };
 
-exports.getDashboard =(req, res)=>{
-    let token = req.headers.authorization.split(" ")[1]
-    jwt.verify( token, "secretkey", (err, result) => {
-        if(err){
-            console.log(err);
-            res.send({status: false, message: "Token is expired or invalid"})     
-        }else{
-            console.log(result);
-            let email = result.email
-            userModel.findOne({email: email})
-                .then((foundCustomer)=>{
-                    res.send({status: true, message: "token is valid", foundCustomer})
-                })
+exports.getDashboard = (req, res) => {
+  let token = req.headers.authorization.split(" ")[1]
+  // jwt.verify( token, "secretkey", (err, result) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.send({ status: false, message: "Token is expired or invalid" })
+    } else {
+      console.log(result);
+      let email = result.email
+      userModel.findOne({ email: email })
+        .then((foundCustomer) => {
+          res.send({ status: true, message: "token is valid", foundCustomer })
+        })
 
-            
-        }
-    }); 
+
+    }
+  });
 }
