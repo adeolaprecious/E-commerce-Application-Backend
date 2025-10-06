@@ -1,12 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  getSignup,
-  postRegister,
-  getSignin,
-  postLogin,
-} = require("../controllers/user.controller");
+const { getSignup, postRegister, getSignin, postLogin} = require("../controllers/user.controller");
 
 // signup
 router.get("/signup", getSignup);

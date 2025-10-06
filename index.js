@@ -1,20 +1,24 @@
 const express = require("express");
 const app = express();
-const ejs = require("ejs");
+const cors = require("cors")
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
-dotenv.config();
-const cors = require("cors")
+// const ejs = require("ejs");
+
+dotenv.config(); 
 app.use(cors())
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/api/cart", require("./routes/cart.route"));
+app.use("/api/orders", require("./routes/order.route"));
+
 // EJS setup
 app.set("view engine", "ejs");
-app.set("views", __dirname + "/views"); // 👈 Make sure you have a "views" folder in backend/
+app.set("views", __dirname + "/views");
 
 // MongoDB connection
 const URI = process.env.URI;
@@ -33,6 +37,11 @@ mongoose
 const customerRouter = require("./routes/user.route");
 app.use("/user", customerRouter);
 
+const productRouter = require("./routes/product.route");
+app.use("/api/products", productRouter);   // 👈 this is what frontend expects
+  
+
+
 // Default route
 app.get("/", (req, res) => {
   res.send("🚀 Server is up and running. Go to /user/signup or /user/signin");
@@ -42,3 +51,8 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server has started on http://localhost:${port}`);
 });
+
+
+
+
+
