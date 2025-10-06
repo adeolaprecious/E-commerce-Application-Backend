@@ -1,4 +1,3 @@
-const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer")
 const jwt = require("jsonwebtoken");
@@ -146,7 +145,7 @@ exports.getDashboard =(req, res)=>{
         }else{
             console.log(result);
             let email = result.email
-            customerModel.findOne({email: email})
+            userModel.findOne({email: email})
                 .then((foundCustomer)=>{
                     res.send({status: true, message: "token is valid", foundCustomer})
                 })
