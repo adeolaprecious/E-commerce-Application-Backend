@@ -61,7 +61,7 @@ exports.postRegister = async (req, res) => {
     });
     res.redirect('/user/signIn');
   } catch (err) {
-    console.error("❌ Error registering user:", err);
+    console.error(Error registering user:", err);
     res.status(500).send("Server error");
   }
 };
@@ -70,31 +70,6 @@ exports.postRegister = async (req, res) => {
 exports.getSignin = (req, res) => {
   res.render("signIn");
 };
-
-// Handle signin form
-// exports.postLogin = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // find user
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       return res.status(400).send("Invalid email or password");
-//     }
-
-//     // compare password
-//     const isMatch = bcrypt.compareSync(password, user.password);
-//     if (!isMatch) {
-//       return res.status(400).send("Invalid email or password");
-//     }
-
-//     console.log("✅ User logged in:", user.email);
-//     res.send(`Welcome ${user.firstName}! You are logged in.`);
-//   } catch (err) {
-//     console.error("❌ Error logging in:", err);
-//     res.status(500).send("Server error");
-//   }
-// };
 
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
