@@ -17,8 +17,8 @@ app.use("/api/cart", require("./routes/cart.route"));
 app.use("/api/orders", require("./routes/order.route"));
 
 // EJS setup
-app.set("view engine", "ejs");
-app.set("views", __dirname + "/views");
+// app.set("view engine", "ejs");
+// app.set("views", __dirname + "/views");
 
 // MongoDB connection
 const URI = process.env.URI;

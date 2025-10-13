@@ -66,9 +66,9 @@ exports.postRegister = async (req, res) => {
 };
 
 // Render signin page
-exports.getSignin = (req, res) => {
-  res.render("signin");
-};
+// exports.getSignin = (req, res) => {
+//   res.render("signin");
+// };
 
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
@@ -87,7 +87,6 @@ exports.postLogin = (req, res) => {
         return res.status(400).json({ message: "Invalid email or password" });
       }
       console.log("Login successful for:", foundCustomer.email);
-      // create token with id and email, use env secret (fallback to 'secretkey' if not set)
       const token = jwt.sign({ id: foundCustomer._id, email: foundCustomer.email }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '7d' });
       console.log("Generated JWT for user id:", foundCustomer._id.toString());
 
