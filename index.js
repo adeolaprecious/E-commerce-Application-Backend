@@ -27,10 +27,10 @@ const port = process.env.PORT || 4950;
 mongoose
   .connect(URI)
   .then(() => {
-    console.log("✅ Mongoose connected successfully");
+    console.log("Mongoose connected successfully");
   })
   .catch((error) => {
-    console.error("❌ Mongoose connection error:", error);
+    console.error("Mongoose connection error:", error);
   });
 
 // Routes
@@ -44,7 +44,7 @@ app.use("/api/products", productRouter);   // 👈 this is what frontend expects
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("🚀 Server is up and running. Go to /user/signup or /user/signin");
+  res.send("API is running...");
 });
 
 // Start server

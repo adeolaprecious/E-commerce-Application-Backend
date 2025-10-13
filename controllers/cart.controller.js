@@ -1,5 +1,3 @@
-// 📁 src/controllers/cart.controller.js
-
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model"); // Need product model for price/stock checks
 
@@ -22,7 +20,7 @@ exports.getUserCart = async (req, res) => {
         // Return existing cart or an empty one
         res.json(cart || { user: userId, items: [] });
     } catch (err) {
-        console.error("❌ Error fetching cart:", err.message);
+        console.error("Error fetching cart:", err.message);
         res.status(500).json({ message: "Server error while fetching cart." });
     }
 };
@@ -101,7 +99,7 @@ exports.removeFromCart = async (req, res) => {
         res.status(200).json(updatedCart);
 
     } catch (err) {
-        console.error("❌ Error removing from cart:", err.message);
+        console.error("Error removing from cart:", err.message);
         res.status(500).json({ message: "Server error removing product from cart." });
     }
 };

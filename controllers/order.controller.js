@@ -1,5 +1,3 @@
-// 📁 src/controllers/order.controller.js
-
 const Order = require("../models/order.model");
 const Cart = require("../models/cart.model");
 const Product = require("../models/product.model");
