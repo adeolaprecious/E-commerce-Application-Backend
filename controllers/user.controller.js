@@ -12,14 +12,14 @@ exports.getSignup = (req, res) => {
 exports.postRegister = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
-  const existingCustomer = await User.findOne({ email });
+    const existingCustomer = await User.findOne({ email });
     if (existingCustomer) {
       return res.status(400).send("User already exists. Please login.");
     }
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-  const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
-  await newCustomer.save();
+    const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
+    await newCustomer.save();
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
