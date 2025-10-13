@@ -1,30 +1,30 @@
 const bcrypt = require("bcryptjs");
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-const userModel = require("../models/user.model");
+const User = require("../models/user.model");
 
 // Render signup page
 exports.getSignup = (req, res) => {
-  res.render("signUp");
+  res.render("signup");
 };
 
 // Handle signup form
 exports.postRegister = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
-    const existingCustomer = await userModel.findOne({ email });
+  const existingCustomer = await User.findOne({ email });
     if (existingCustomer) {
       return res.status(400).send("User already exists. Please login.");
     }
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    const newCustomer = new userModel({ firstName, lastName, email, password: hashedPassword, });
-    await newCustomer.save();
+  const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
+  await newCustomer.save();
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL.USER,
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
       tls: {
@@ -32,8 +32,8 @@ exports.postRegister = async (req, res) => {
       },
     });
     let mailOptions = {
-      from: 'adeolaprecious006@gmail.com',
-      to: [req.body.email, 'adeoladebowale24@gmail.com'],
+      from: process.env.EMAIL_USER,
+      to: [req.body.email, process.env.EMAIL_USER],
       html: `
   <div style="max-width:600px; margin:0 auto; background:#FAFE0; border-radius:8px; overflow:hidden;">
     <div style="background:#FFC107; padding:24px; text-align:center; color:#ffffff;">
@@ -53,30 +53,28 @@ exports.postRegister = async (req, res) => {
     };
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        console.log(error);
-      }
-      else {
+        console.log('Email error:', error && error.message ? error.message : error);
+      } else {
         console.log('Email sent: ' + info.response);
       }
     });
-    res.redirect('/user/signIn');
+    res.redirect('/user/signin');
   } catch (err) {
-    console.error(Error registering user:", err);
+    console.error("Error registering user:", err);
     res.status(500).send("Server error");
   }
 };
 
 // Render signin page
 exports.getSignin = (req, res) => {
-  res.render("signIn");
+  res.render("signin");
 };
 
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
   // res.send('confirmed again')
   console.log("Login form submitted data", req.body);
-
-  userModel.findOne({ email })
+  User.findOne({ email })
     .then((foundCustomer) => {
       if (!foundCustomer) {
         console.log("Invalid email");
@@ -88,20 +86,23 @@ exports.postLogin = (req, res) => {
         console.log("Invalid password");
         return res.status(400).json({ message: "Invalid email or password" });
       }
-      console.log("Login successfull for:", foundCustomer.email);
-      // const token = jwt.sign({ email: req.body.email }, "secretkey", { expiresIn: "7d" });
-      const token = jwt.sign({ email: req.body.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
-      console.log("Generated JWT:", token);
+      console.log("Login successful for:", foundCustomer.email);
+      // create token with id and email, use env secret (fallback to 'secretkey' if not set)
+      const token = jwt.sign({ id: foundCustomer._id, email: foundCustomer.email }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '7d' });
+      console.log("Generated JWT for user id:", foundCustomer._id.toString());
 
+      const fullName = `${foundCustomer.firstName || ''} ${foundCustomer.lastName || ''}`.trim();
       return res.json({
         message: "Login successful",
         user: {
           id: foundCustomer._id,
-          fullName: foundCustomer.fullName,
+          firstName: foundCustomer.firstName,
+          lastName: foundCustomer.lastName,
+          fullName: fullName,
           email: foundCustomer.email,
           token: token
         }
-      })
+      });
 
     })
     .catch((err) => {
@@ -111,21 +112,25 @@ exports.postLogin = (req, res) => {
 };
 
 exports.getDashboard = (req, res) => {
-  let token = req.headers.authorization.split(" ")[1]
-  // jwt.verify( token, "secretkey", (err, result) => {
-  jwt.verify(token, process.env.JWT_SECRET, (err, result) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ status: false, message: 'No token provided' });
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET || 'secretkey', (err, result) => {
     if (err) {
-      console.log(err);
-      res.send({ status: false, message: "Token is expired or invalid" })
-    } else {
-      console.log(result);
-      let email = result.email
-      userModel.findOne({ email: email })
-        .then((foundCustomer) => {
-          res.send({ status: true, message: "token is valid", foundCustomer })
-        })
-
-
+      console.log('JWT verify error:', err.message || err);
+      return res.status(401).send({ status: false, message: 'Token is expired or invalid' });
     }
+    // result should contain id and email
+    const email = result.email;
+    User.findOne({ email: email })
+      .then((foundCustomer) => {
+        res.send({ status: true, message: 'token is valid', foundCustomer });
+      })
+      .catch((err) => {
+        console.error('Error finding user in dashboard:', err);
+        res.status(500).send({ status: false, message: 'Server error' });
+      });
   });
-}
+};
