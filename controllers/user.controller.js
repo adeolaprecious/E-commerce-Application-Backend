@@ -4,9 +4,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
 // Render signup page
-exports.getSignup = (req, res) => {
-  res.render("signup");
-};
+// exports.getSignup = (req, res) => {
+//   res.render("signup");
+// };
 
 // Handle signup form
 exports.postRegister = async (req, res) => {

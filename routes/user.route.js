@@ -5,11 +5,11 @@ const User = require('../models/user.model');
 const {getSignup, postRegister, getSignin, postLogin} = require("../controllers/user.controller");
 
 // signup
-router.get("/signup", getSignup);
+// router.get("/signup", getSignup);
 router.post("/register", postRegister);
 
 // signin
-router.get("/signin", getSignin);
+// router.get("/signin", getSignin);
 router.post("/login", postLogin);
 
 
