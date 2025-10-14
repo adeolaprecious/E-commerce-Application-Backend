@@ -36,5 +36,3 @@ exports.getProductById = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
-// You'll need to update your product.route.js to use these controllers.
