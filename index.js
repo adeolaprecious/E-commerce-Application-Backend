@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors")
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const path = require('path');
 
 // const ejs = require("ejs");
 
@@ -42,10 +43,31 @@ app.use("/api/products", productRouter);   // 👈 this is what frontend expects
   
 
 
-// Default route
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
+// Serve React app (production build) --- adjust path if your client folder is named differently
+// const clientBuildPath = path.join(__dirname, '..', 'client', 'build');
+
+// Serve static files from React build (if it exists)
+// if (require('fs').existsSync(clientBuildPath)) {
+//   app.use(express.static(clientBuildPath));
+
+//   // Serve index.html on root
+//   app.get('/', (req, res) => {
+//     res.sendFile(path.join(clientBuildPath, 'index.html'));
+//   });
+
+//   // Catch-all to support client-side routing (but don't hijack API routes)
+//   app.get('*', (req, res) => {
+//     if (req.path.startsWith('/api') || req.path.startsWith('/user')) {
+//       return res.status(404).send('Not found');
+//     }
+//     res.sendFile(path.join(clientBuildPath, 'index.html'));
+//   });
+// } else {
+//   // Fallback default route when client build is not present
+//   app.get('/', (req, res) => {
+//     res.send('API is running...');
+//   });
+// }
 
 // Start server
 app.listen(port, () => {
