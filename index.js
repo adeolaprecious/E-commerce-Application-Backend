@@ -10,9 +10,16 @@ const path = require('path');
 
 dotenv.config(); 
 // app.use(cors())
+
+
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://e-commerce-application-frontend-git-master-adeola-s-projects.vercel.app'
+];
+
 app.use(cors({
-  origin: "localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
 
