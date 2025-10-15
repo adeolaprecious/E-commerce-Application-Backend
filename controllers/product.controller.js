@@ -12,16 +12,48 @@ exports.getAllProducts = async (req, res) => {
 };
 
 // POST /api/products - Create a new product (Admin function)
+// exports.createProduct = async (req, res) => {
+//     try {
+//         const newProduct = new Product(req.body);
+//         const savedProduct = await newProduct.save();
+//         res.status(201).json(savedProduct);
+//     } catch (err) {
+//         console.error("Error creating product:", err);
+//         res.status(400).json({ message: err.message });
+//     }
+// };
+
 exports.createProduct = async (req, res) => {
+    if (Array.isArray(req.body)) {
+        try {
+            const insertedProducts = await Product.insertMany(req.body, { ordered: false });
+            return res.status(201).json({
+                message: `${insertedProducts.length} products added successfully.`,
+                products: insertedProducts
+            });
+
+        } catch (err) {
+            console.error("Error during bulk product insertion:", err);
+            let errorMessage = "One or more products failed validation or insertion.";
+            if (err.writeErrors && err.writeErrors.length > 0) {
+                errorMessage += " See server logs for specific failures.";
+            } else if (err.name === 'ValidationError') {
+                errorMessage = err.message;
+            }
+            return res.status(400).json({ message: errorMessage });
+        }
+    }
     try {
         const newProduct = new Product(req.body);
         const savedProduct = await newProduct.save();
         res.status(201).json(savedProduct);
+
     } catch (err) {
-        console.error("Error creating product:", err);
+        console.error("Error creating single product:", err);
         res.status(400).json({ message: err.message });
     }
 };
+
 
 // GET /api/products/:id - Get a single product
 exports.getProductById = async (req, res) => {

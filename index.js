@@ -5,12 +5,7 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require('path');
 
-
-// const ejs = require("ejs");
-
 dotenv.config(); 
-// app.use(cors())
-
 
 const allowedOrigins = [
     'http://localhost:5173',
@@ -23,19 +18,12 @@ app.use(cors({
   credentials: true
 }));
 
-
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/cart", require("./routes/cart.route"));
 app.use("/api/orders", require("./routes/order.route"));
 
-// EJS setup
-// app.set("view engine", "ejs");
-// app.set("views", __dirname + "/views");
-
-// MongoDB connection
 const URI = process.env.URI;
 const port = process.env.PORT || 4950;
 
@@ -48,19 +36,12 @@ mongoose
     console.error("Mongoose connection error:", error);
   });
 
-let allCustomers = []
-
-
-// Routes
 const customerRouter = require("./routes/user.route");
 app.use("/user", customerRouter);
 
 const productRouter = require("./routes/product.route");
 app.use("/api/products", productRouter);
   
-
-
-// Default route
 app.get("/", (req, res) => {
   res.send("Welcome to the E-commerce API");
 });
@@ -74,7 +55,6 @@ app.use((err, req, res, next) => {
 });
 
 
-// Start server
 app.listen(port, () => {
   console.log(`Server has started on http://localhost:${port}`);
 });

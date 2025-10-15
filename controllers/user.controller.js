@@ -3,88 +3,78 @@ const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-// Render signup page
-// exports.getSignup = (req, res) => {
-//   res.render("signup");
-// };
+            exports.postRegister = async (req, res) => {
+              try {
+                const { firstName, lastName, email, password } = req.body;
+                // basic validation
+                if (!firstName || !lastName || !email || !password) {
+                  return res.status(400).json({ message: 'firstName, lastName, email and password are required' });
+                }
 
-// Handle signup form
-exports.postRegister = async (req, res) => {
-  try {
-    const { firstName, lastName, email, password } = req.body;
-    // basic validation
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ message: 'firstName, lastName, email and password are required' });
-    }
+                const existingCustomer = await User.findOne({ email });
+                if (existingCustomer) {
+                  return res.status(409).json({ message: 'User already exists. Please login.' });
+                }
 
-    const existingCustomer = await User.findOne({ email });
-    if (existingCustomer) {
-      return res.status(409).json({ message: 'User already exists. Please login.' });
-    }
+                const salt = bcrypt.genSaltSync(10);
+                const hashedPassword = bcrypt.hashSync(password, salt);
+                const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
+                const savedUser = await newCustomer.save();
 
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(password, salt);
-    const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
-    const savedUser = await newCustomer.save();
+                let transporter = nodemailer.createTransport({
+                  service: 'gmail',
+                  auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                  },
+                  tls: {
+                    rejectUnauthorized: false,
+                  },
+                });
+                let mailOptions = {
+                  from: process.env.EMAIL_USER,
+                  to: [req.body.email, process.env.EMAIL_USER],
+                  html: `
+              <div style="max-width:600px; margin:0 auto; background:#FAFE0; border-radius:8px; overflow:hidden;">
+                <div style="background:#FFC107; padding:24px; text-align:center; color:#ffffff;">
+                  <h1 style="margin:0; font-size:24px;">🎉 Welcome to DIVA!</h1>
+                </div>
+                <div style="padding:24px; color:#333;">
+                  <h2 style="color:#111827; font-size:20px; margin-bottom:12px;">Hi ${firstName},</h2>
+                  <p style="line-height:1.6; margin-bottom:16px;">Congratulations! 🎊 Your account has been successfully created with <strong>DIVA</strong>.</p>
+                  <p style="line-height:1.6; margin-bottom:16px;">We’re excited to have you on board. From now on, you’ll be able to enjoy exclusive deals, track your orders, and shop faster than ever.</p>
+                  <p style="line-height:1.6; margin-bottom:16px;">Cheers,<br>DIVA Team</p>
+                </div>
+                <div style="padding:16px; font-size:13px; text-align:center; color:#888; background:#f9fafb;">
+                  &copy; 2025 DIVA. All rights reserved.
+                </div>
+              </div>
+              `
+                };
+                transporter.sendMail(mailOptions, function (error, info) {
+                  if (error) {
+                    console.log('Email error:', error && error.message ? error.message : error);
+                  } else {
+                    console.log('Email sent: ' + info.response);
+                  }
+                });
+                // return safe user data (never return password)
+                return res.status(201).json({
+                  message: 'Registration successful. Please log in.',
+                  user: {
+                    id: savedUser._id,
+                    firstName: savedUser.firstName,
+                    lastName: savedUser.lastName,
+                    email: savedUser.email
+                  }
+                });
 
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-    let mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: [req.body.email, process.env.EMAIL_USER],
-      html: `
-  <div style="max-width:600px; margin:0 auto; background:#FAFE0; border-radius:8px; overflow:hidden;">
-    <div style="background:#FFC107; padding:24px; text-align:center; color:#ffffff;">
-      <h1 style="margin:0; font-size:24px;">🎉 Welcome to DIVA!</h1>
-    </div>
-    <div style="padding:24px; color:#333;">
-      <h2 style="color:#111827; font-size:20px; margin-bottom:12px;">Hi ${firstName},</h2>
-      <p style="line-height:1.6; margin-bottom:16px;">Congratulations! 🎊 Your account has been successfully created with <strong>DIVA</strong>.</p>
-      <p style="line-height:1.6; margin-bottom:16px;">We’re excited to have you on board. From now on, you’ll be able to enjoy exclusive deals, track your orders, and shop faster than ever.</p>
-      <p style="line-height:1.6; margin-bottom:16px;">Cheers,<br>DIVA Team</p>
-    </div>
-    <div style="padding:16px; font-size:13px; text-align:center; color:#888; background:#f9fafb;">
-      &copy; 2025 DIVA. All rights reserved.
-    </div>
-  </div>
-  `
-    };
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log('Email error:', error && error.message ? error.message : error);
-      } else {
-        console.log('Email sent: ' + info.response);
-      }
-    });
-    // return safe user data (never return password)
-    return res.status(201).json({
-      message: 'Registration successful. Please log in.',
-      user: {
-        id: savedUser._id,
-        firstName: savedUser.firstName,
-        lastName: savedUser.lastName,
-        email: savedUser.email
-      }
-    });
+              } catch (err) {
+                console.error("Error registering user:", err);
+                res.status(500).send("Server error");
+              }
+            };
 
-  } catch (err) {
-    console.error("Error registering user:", err);
-    res.status(500).send("Server error");
-  }
-};
-
-// Render signin page
-// exports.getSignin = (req, res) => {
-//   res.render("signin");
-// };
 
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
