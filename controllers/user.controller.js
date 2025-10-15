@@ -12,14 +12,20 @@ const User = require("../models/user.model");
 exports.postRegister = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
+    // basic validation
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'firstName, lastName, email and password are required' });
+    }
+
     const existingCustomer = await User.findOne({ email });
     if (existingCustomer) {
-      return res.status(400).send("User already exists. Please login.");
+      return res.status(409).json({ message: 'User already exists. Please login.' });
     }
+
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
     const newCustomer = new User({ firstName, lastName, email, password: hashedPassword });
-    await newCustomer.save();
+    const savedUser = await newCustomer.save();
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -58,7 +64,17 @@ exports.postRegister = async (req, res) => {
         console.log('Email sent: ' + info.response);
       }
     });
-    res.redirect('/user/signin');
+    // return safe user data (never return password)
+    return res.status(201).json({
+      message: 'Registration successful. Please log in.',
+      user: {
+        id: savedUser._id,
+        firstName: savedUser.firstName,
+        lastName: savedUser.lastName,
+        email: savedUser.email
+      }
+    });
+
   } catch (err) {
     console.error("Error registering user:", err);
     res.status(500).send("Server error");

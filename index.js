@@ -5,10 +5,17 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require('path');
 
+
 // const ejs = require("ejs");
 
 dotenv.config(); 
-app.use(cors())
+// app.use(cors())
+app.use(cors({
+  origin: "localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 
 // Middleware
 app.use(express.json());
@@ -34,19 +41,31 @@ mongoose
     console.error("Mongoose connection error:", error);
   });
 
+let allCustomers = []
+
+
 // Routes
 const customerRouter = require("./routes/user.route");
 app.use("/user", customerRouter);
 
 const productRouter = require("./routes/product.route");
-app.use("/api/products", productRouter);   // 👈 this is what frontend expects
+app.use("/api/products", productRouter);
   
 
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("🚀 Server is up and running. Go to /user/signup or /user/signin");
+  res.send("Welcome to the E-commerce API");
 });
+
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  res.status(500).json({
+    message: "Something went wrong on the server",
+    error: err.message,
+  });
+});
+
 
 // Start server
 app.listen(port, () => {
