@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-const router = express.Router();
+// const router = express.Router();
 const authController = require('../controllers/auth.controller');
 
 router.post('/forgot-password', authController.forgotPassword);
