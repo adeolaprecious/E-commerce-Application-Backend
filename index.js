@@ -45,6 +45,8 @@ app.use("/api/products", productRouter);
 const aiRoute = require("./routes/ai.route");
 app.use("/api/ai", aiRoute);
 
+app.use("/api/users", require("./routes/user.route"));
+
   
 app.get("/", (req, res) => {
   res.send("Welcome to the E-commerce API");

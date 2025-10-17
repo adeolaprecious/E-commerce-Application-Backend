@@ -2,15 +2,14 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
-
-// const router = express.Router();
+const express = require('express');
+const router = express.Router();
 const authController = require('../controllers/auth.controller');
 
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password/:token', authController.resetPassword);
 
 module.exports = router;
-
 
             exports.postRegister = async (req, res) => {
               try {
@@ -67,7 +66,7 @@ module.exports = router;
                     console.log('Email sent: ' + info.response);
                   }
                 });
-                // return safe user data (never return password)
+
                 return res.status(201).json({
                   message: 'Registration successful. Please log in.',
                   user: {
@@ -87,7 +86,6 @@ module.exports = router;
 
 exports.postLogin = (req, res) => {
   const { email, password } = req.body;
-  // res.send('confirmed again')
   console.log("Login form submitted data", req.body);
   User.findOne({ email })
     .then((foundCustomer) => {
@@ -147,4 +145,32 @@ exports.getDashboard = (req, res) => {
         res.status(500).send({ status: false, message: 'Server error' });
       });
   });
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, password } = req.body;
+
+    const updateFields = {};
+    if (firstName) updateFields.firstName = firstName;
+    if (lastName) updateFields.lastName = lastName;
+    if (password) updateFields.password = await bcrypt.hash(password, 10);
+
+    const user = await User.findByIdAndUpdate(userId, updateFields, { new: true }).select("-password");
+    res.json({ message: "Profile updated successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 };
