@@ -41,10 +41,19 @@ app.use("/user", customerRouter);
 
 const productRouter = require("./routes/product.route");
 app.use("/api/products", productRouter);
+
+const aiRoute = require("./routes/ai.route");
+app.use("/api/ai", aiRoute);
+
   
 app.get("/", (req, res) => {
   res.send("Welcome to the E-commerce API");
 });
+
+app.use("/api/payment", require("./routes/payment.route"));
+
+app.use("/api/webhook", require("./routes/webhook.route"));
+
 
 app.use((err, req, res, next) => {
   console.error("Error:", err);
