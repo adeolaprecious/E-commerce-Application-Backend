@@ -12,18 +12,6 @@ const allowedOrigins = [
     'https://e-commerce-application-frontend-git-master-adeola-s-projects.vercel.app'
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.use("/api/cart", require("./routes/cart.route"));
-app.use("/api/orders", require("./routes/order.route"));
-
 const URI = process.env.URI;
 const port = process.env.PORT || 4950;
 
@@ -36,6 +24,20 @@ mongoose
     console.error("Mongoose connection error:", error);
   });
 
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/cart", require("./routes/cart.route"));
+app.use("/api/orders", require("./routes/order.route"));
+
+
 const customerRouter = require("./routes/user.route");
 app.use("/user", customerRouter);
 
@@ -47,7 +49,9 @@ app.use("/api/ai", aiRoute);
 
 app.use("/api/users", require("./routes/user.route"));
 
-  
+const authRoutes = require("./routes/auth.route");
+app.use("/api/auth", authRoutes);
+
 app.get("/", (req, res) => {
   res.send("Welcome to the E-commerce API");
 });

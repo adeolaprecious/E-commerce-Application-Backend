@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const authMiddleware = require("../middlewares/auth.middleware");
-
-const cartController = require("../controllers/cart.controller"); 
+const { authMiddleware } = require("../middlewares/auth.middleware"); // ✅ FIXED
+const cartController = require("../controllers/cart.controller");
 
 router.get("/", authMiddleware, cartController.getUserCart);
 
